@@ -1,0 +1,3 @@
+[submodule "PancoGame"]
+	path = PancoGame
+	url = git@github.com:/Angargo/PancoGame
