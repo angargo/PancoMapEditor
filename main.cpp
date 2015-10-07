@@ -3,7 +3,7 @@
 
 int main(int argc, char *argv[]) {
   Glib::RefPtr<Gtk::Application> app =
-      Gtk::Application::create(argc, argv, "uri");
+      Gtk::Application::create(argc, argv, "tk.mysticode.panco.mapeditor");
 
   MainWindow window;
 

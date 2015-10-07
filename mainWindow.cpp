@@ -2,83 +2,64 @@
 #include <iostream>
 
 MainWindow::MainWindow()
-    : m_Box(Gtk::ORIENTATION_VERTICAL),
-      m_HPaned(Gtk::ORIENTATION_HORIZONTAL),
-      m_LeftPane(),
-      m_RightPane() {
+    : Box(Gtk::ORIENTATION_VERTICAL), HPaned(Gtk::ORIENTATION_HORIZONTAL),
+      leftPane(), rightPane() {
   set_title("Map Editor");
   set_size_request(1200, 900);
   set_border_width(6);
 
-  add(m_Box);
+  add(Box);
 
   // create actions
-  m_refActionGroup = Gio::SimpleActionGroup::create();
+  refActionGroup = Gio::SimpleActionGroup::create();
   make_actions();
 
-  m_refBuilder = Gtk::Builder::create();
+  refBuilder = Gtk::Builder::create();
   make_menu_bar();
 
   make_toolbars();
 
-  m_HPaned.add1(m_LeftPane);
-  m_HPaned.add2(m_RightPane);
-  m_HPaned.set_position(1000);
-  m_Box.pack_start(m_HPaned, Gtk::PACK_EXPAND_WIDGET);
+  HPaned.add1(leftPane);
+  HPaned.add2(rightPane);
+  HPaned.set_position(1000);
+  Box.pack_start(HPaned, Gtk::PACK_EXPAND_WIDGET);
   show_all_children();
+
+  if(pToolbarMenu->is_visible())
+    std::cout << "VISIBLE" << std::endl;
+  else
+    std::cout << "NOPE" << std::endl;
 }
 
-MainWindow::~MainWindow() { std::cout << "destroying window" << std::endl; }
+MainWindow::~MainWindow() {
+  std::cout << "destroying window" << std::endl;
+  delete pToolbarMenu;
+  delete pTestee;
+}
 
 void MainWindow::make_actions() {
-  m_refActionGroup->add_action("new",
-                               sigc::mem_fun(*this, &MainWindow::on_menu_new));
-  m_refActionGroup->add_action("open",
-                               sigc::mem_fun(*this, &MainWindow::on_menu_open));
-  m_refActionGroup->add_action("save",
-                               sigc::mem_fun(*this, &MainWindow::on_menu_save));
-  m_refActionGroup->add_action(
-      "save_as", sigc::mem_fun(*this, &MainWindow::on_menu_save_as));
-  m_refActionGroup->add_action("quit",
-                               sigc::mem_fun(*this, &MainWindow::on_menu_quit));
+  refActionGroup->add_action("new",
+                             []() { std::cout << "new lambda" << std::endl; });
+  refActionGroup->add_action("open",
+                             []() { std::cout << "open lambda" << std::endl; });
+  refActionGroup->add_action("save",
+                             []() { std::cout << "save lambda" << std::endl; });
+  refActionGroup->add_action(
+      "save_as", []() { std::cout << "save as lambda" << std::endl; });
+  refActionGroup->add_action("quit", [this]() { this->hide(); });
+  refActionGroup->add_action("help",
+                             []() { std::cout << "help lambda" << std::endl; });
+  refActionGroup->add_action(
+      "about", []() { std::cout << "about lambda" << std::endl; });
 
-  m_refActionGroup->add_action("help",
-                               sigc::mem_fun(*this, &MainWindow::on_menu_help));
-  m_refActionGroup->add_action(
-      "about", sigc::mem_fun(*this, &MainWindow::on_menu_about));
-
-  insert_action_group("menu_actions", m_refActionGroup);
+  insert_action_group("menu_actions", refActionGroup);
 }
-
-void MainWindow::on_menu_new() {
-  std::cout << "NEW action triggered." << std::endl;
-}
-
-void MainWindow::on_menu_open() {
-  std::cout << "OPEN action triggered." << std::endl;
-}
-
-void MainWindow::on_menu_about() {
-  std::cout << "ABOUT action triggered." << std::endl;
-}
-
-void MainWindow::on_menu_help() {
-  std::cout << "HELP action triggered." << std::endl;
-}
-
-void MainWindow::on_menu_save() {
-  std::cout << "SAVE action tirggered." << std::endl;
-}
-
-void MainWindow::on_menu_save_as() {
-  std::cout << "SAVE AS action triggered." << std::endl;
-}
-
-void MainWindow::on_menu_quit() { hide(); }
 
 void MainWindow::make_toolbars() {
-  Gtk::Toolbar* toolbar = Gtk::manage(new Gtk::Toolbar());
-  m_Box.pack_start(*toolbar, Gtk::PACK_SHRINK);
+  pToolbarMenu = new ToolbarMenu();
+  pTestee = new BaseToolbar(pToolbarMenu);
+  pToolbarMenu->finishSetUp();
+  Box.pack_start(*pTestee, Gtk::PACK_SHRINK);
 }
 
 void MainWindow::make_menu_bar() {
@@ -138,17 +119,18 @@ void MainWindow::make_menu_bar() {
       "</interface>";
 
   try {
-    m_refBuilder->add_from_string(ui_info);
-  } catch (const Glib::Error& ex) {
+    refBuilder->add_from_string(ui_info);
+  } catch (const Glib::Error &ex) {
     std::cerr << "building menus failed: " << ex.what();
   }
 
   // get menubar
-  Glib::RefPtr<Glib::Object> object = m_refBuilder->get_object("top-menu");
+  Glib::RefPtr<Glib::Object> object = refBuilder->get_object("top-menu");
   Glib::RefPtr<Gio::Menu> gmenu = Glib::RefPtr<Gio::Menu>::cast_dynamic(object);
-  if (!gmenu) g_warning("GMenu not found");
+  if (!gmenu)
+    g_warning("GMenu not found");
 
   // put it there
-  Gtk::MenuBar* pMenubar = Gtk::manage(new Gtk::MenuBar(gmenu));
-  m_Box.pack_start(*pMenubar, Gtk::PACK_SHRINK);
+  Gtk::MenuBar *pMenubar = Gtk::manage(new Gtk::MenuBar(gmenu));
+  Box.pack_start(*pMenubar, Gtk::PACK_SHRINK);
 }
