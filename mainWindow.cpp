@@ -24,11 +24,6 @@ MainWindow::MainWindow()
   HPaned.set_position(1000);
   Box.pack_start(HPaned, Gtk::PACK_EXPAND_WIDGET);
   show_all_children();
-
-  if(pToolbarMenu->is_visible())
-    std::cout << "VISIBLE" << std::endl;
-  else
-    std::cout << "NOPE" << std::endl;
 }
 
 MainWindow::~MainWindow() {
